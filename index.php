@@ -3,47 +3,6 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Function to fetch content using cURL
-function fetchContent($url) {
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt($ch, CURLOPT_USERAGENT, 'Project Leviticus');
-    $content = curl_exec($ch);
-    curl_close($ch);
-    return $content;
-}
-
-// Handle proxy requests
-if (isset($_GET['url'])) {
-    $url = $_GET['url'];
-
-    // If it's a search query, redirect to a search engine
-    if (!filter_var($url, FILTER_VALIDATE_URL)) {
-        $url = 'https://www.google.com/search?q=' . urlencode($url);
-    }
-
-    // Fetch the content from the target URL
-    $content = fetchContent($url);
-
-    // Remove ads (basic example: remove script tags)
-    $content = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $content);
-
-    // Rewrite links to work through the proxy
-    $content = preg_replace_callback('/href="([^"]+)"/', function($matches) {
-        return 'href="?url=' . urlencode($matches[1]) . '"';
-    }, $content);
-
-    $content = preg_replace_callback('/src="([^"]+)"/', function($matches) {
-        return 'src="?url=' . urlencode($matches[1]) . '"';
-    }, $content);
-
-    // Output the content
-    echo $content;
-    exit;
-}
-
 // Handle theme toggling
 $theme = isset($_COOKIE['theme']) ? $_COOKIE['theme'] : 'dark';
 if (isset($_GET['toggle_theme'])) {
@@ -171,7 +130,14 @@ if (isset($_GET['generate_password'])) {
 
         <!-- Display the website in an iframe -->
         <?php if (isset($_GET['url'])): ?>
-            <iframe src="?url=<?php echo urlencode($_GET['url']); ?>"></iframe>
+            <?php
+            $url = $_GET['url'];
+            // If it's a search query, redirect to a search engine
+            if (!filter_var($url, FILTER_VALIDATE_URL)) {
+                $url = 'https://www.google.com/search?q=' . urlencode($url);
+            }
+            ?>
+            <iframe src="<?php echo htmlspecialchars($url); ?>"></iframe>
         <?php endif; ?>
     </div>
 </body>
