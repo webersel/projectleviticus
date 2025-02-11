@@ -3,6 +3,18 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Function to fetch content using cURL
+function fetchContent($url) {
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Project Leviticus');
+    $content = curl_exec($ch);
+    curl_close($ch);
+    return $content;
+}
+
 // Handle proxy requests
 if (isset($_GET['url'])) {
     $url = $_GET['url'];
@@ -13,13 +25,7 @@ if (isset($_GET['url'])) {
     }
 
     // Fetch the content from the target URL
-    $options = [
-        "http" => [
-            "header" => "User-Agent: Project Leviticus\r\n"
-        ]
-    ];
-    $context = stream_context_create($options);
-    $content = file_get_contents($url, false, $context);
+    $content = fetchContent($url);
 
     // Remove ads (basic example: remove script tags)
     $content = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $content);
